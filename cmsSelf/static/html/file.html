@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>表单提交</title>
+</head>
+<body>
+  <!-- 单纯form表单上传 -->
+  <h1>--------</h1>
+  <form action="http://localhost:3000/file/upload" method="post" 
+  enctype="multipart/form-data">
+    <h2>单图片上传</h2>
+    <input type="file" name="imgs"/>  <!-- name要与后端的key值对上 -->
+    <input type="submit" value="提交"/>
+    <input/>
+  </form>
+  <h1>--------</h1>
+  <form id="uploadForm1">
+    <p>指定文件名称： <input type="text" name="filename" value=""></p>
+    <p>上传文件： <input type="file" name="imgs"></p>
+    <input type="button" value="上传" onclick="doUpload1()">
+  </form>
+  <!-- FormData对象，是可以使用一系列得键值对模拟一个完整得表单，然后使用XMLHttpRequest发送表单 -->
+  <h1>--------</h1>
+  <input type="file" name="imgs" id="file">
+  <button onclick="doUpload()">提交</button>
+  <img src="" alt="">
+</body>
+<script src="/public/js/jquery3.5.0.js"></script>
+<script>
+  /**
+    注意点：
+    1、processData设置为false，因为data值是formData对象，不需要对数据进行处理
+    2、<form>标签添加enctype="multipart/form-data"属性
+    3、cache这是为false，上传文件不需要缓存
+    4、contentType设置为false。<form>表单构造的FormData对象，已经声明了属性
+      enctype="multipart/form-data"，所以这里设置false
+
+    上传后，服务器需要从查询参数名为imgs获取文件输入对象，因为<input>中声明name="imgs"
+  **/
+  function doUpload1() {
+    $.ajax({
+      url: 'http://localhost:3000/file/upload',
+      type: 'POST',
+      cache: false, //  不必须
+      data: new FormData($('#uploadForm1')[0]),
+      processData: false, //必须
+      contentType: false, //必须
+      success: function(data) {
+        console.log('data--->', data)
+      }
+    })
+  }
+  function doUpload() {
+    let file = $('#file').get(0).files[0] // 获取图片
+    let formData = new FormData() // 创建formdata对象
+    formData.append('imgs', file) // 第一个参数与后端key值对应
+    console.log(file)
+    if (file) {
+      $.ajax({
+        url: 'http://localhost:3000/file/upload',
+        type: "POST",
+        cache: false,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+          console.log(data)
+          $('img').attr('src', `http://localhost:3000${data.data}`)
+        }
+      })
+    }
+  }
+</script>
+</html>
