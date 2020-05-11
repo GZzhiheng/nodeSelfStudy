@@ -17,6 +17,7 @@ var storage = multer.diskStorage({
 })
  
 var upload = multer({ storage: storage })
+// 多图上传 upload.array(imgs, 2) 数字表示接受多少张图片
 router.post('/upload', upload.single('imgs'),(req, res) => {
   // imgs 要上传的图片数据key值 必须与前端保持统一
   let {size, mimetype, path} = req.file

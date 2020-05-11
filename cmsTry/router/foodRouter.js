@@ -29,7 +29,7 @@ router.post('/add', (req, res) => {
   let {name,price,dec,typename,typeid,img} = req.body
   foodModel.insertMany({name,price,dec,typename,typeid,img})
   .then(data => {
-    res.send('添加成功')
+    res.send({code: 1, msg: '添加成功'})
   })
   .catch(err => {
     console.log('err-->', err)
@@ -158,12 +158,23 @@ router.post('/update', (req, res) => {
 router.post('/getInfoByPage', (req, res) => {
   let pageSize = Number(req.body.pageSize) || 2
   let pageNo = Number(req.body.pageNo) || 1
-  console.log('pageSize--', pageSize)
-  console.log('pageNo--', pageNo)
-  foodModel.find().limit(pageSize).skip((pageNo-1) * pageSize)
+  let count = 0
+
+  foodModel.find()
+  .then(list => {
+    count = list.length
+    return foodModel.find().limit(pageSize).skip((pageNo-1) * pageSize)
+  })
   .then(data => {
     console.log(data)
-    res.send({code: 1, msg: '查询成功', list: data})
+    let allpage = Math.ceil(count/pageSize)
+    // res.send({code: 0, msg: '查询成功', list: data})
+    res.send({code: 0, msg: '查询成功', result: {
+      list: data,
+      count: count,
+      pageNo: pageNo,
+      allpage: allpage
+    }})
   })
   .catch(err => {
     console.log('err-->', err)
