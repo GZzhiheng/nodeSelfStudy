@@ -126,7 +126,8 @@ function submitFood() {
         typename: $('#typename').val(),
         typeid: $('#typeid').val(),
         img: imgUrl
-    }
+		}
+		console.log('params--', params)
     if (!params.img) return layer.msg('请上传图片',{icon:1,time:1000})
     $.post('http://127.0.0.1:3000/food/add', params, res => {
         if (res.code === 1) {
