@@ -28,12 +28,35 @@ router.post('/add', (req, res) => {
   // }
   let {name,price,dec,typename,typeid,img} = req.body
   foodModel.insertMany({name,price,dec,typename,typeid,img})
-  .then(data => {
+  .then(() => {
     res.send({code: 1, msg: '添加成功'})
   })
   .catch(err => {
     console.log('err-->', err)
     res.send('添加失败')
+  })
+})
+
+/**
+ * @api {post} /food/getFoodById id查询菜品
+ * @apiName getFoodById
+ * @apiGroup Food
+ *
+ * @apiParam {Number} id 菜品id.
+ *
+ * @apiSuccess {String} success 查询成功.
+ * @apiSuccess {String} fail 查询失败.
+ */
+router.post('/getFoodById', (req, res) => {
+  let _id = req.body.id
+  foodModel.find({_id})
+  .then(data => {
+    console.log(data)
+    res.send({code: 1, msg: '查询成功', list: data})
+  })
+  .catch(err => {
+    console.log('err-->', err)
+    res.send('查询失败')
   })
 })
 
@@ -48,17 +71,33 @@ router.post('/add', (req, res) => {
  * @apiSuccess {String} fail 查询失败.
  */
 router.post('/getFoodByType', (req, res) => {
-  let {typeid} = req.body
-  foodModel.find({typeid})
+  let params = req.body.typeid === '0' ? {} : {typeid: req.body.typeid}
+  let pageSize = Number(req.body.pageSize) || 3
+  let pageNo = Number(req.body.pageNo) || 1
+  let count = 0
+
+  foodModel.find(params)
+  .then(list => {
+    count = list.length
+    return foodModel.find(params).limit(pageSize).skip((pageNo-1) * pageSize)
+  })
   .then(data => {
     console.log(data)
-    res.send({code: 1, msg: '查询成功', list: data})
+    let allpage = Math.ceil(count/pageSize)
+    // res.send({code: 0, msg: '查询成功', list: data})
+    res.send({code: 0, msg: '查询成功', result: {
+      list: data,
+      count: count,
+      pageNo: pageNo,
+      allpage: allpage
+    }})
   })
   .catch(err => {
     console.log('err-->', err)
     res.send('查询失败')
   })
 })
+
 
 /**
  * @api {post} /food/getFoodByKw 关键字查询
@@ -78,8 +117,12 @@ router.post('/getFoodByKw', (req, res) => {
   // foodModel.find({name: {$regex: reg}})
   foodModel.find({$or:[{name: {$regex: reg}}, {dec: {$regex: reg}}]})
   .then(data => {
-    console.log(data)
-    res.send({code: 1, msg: '查询成功', list: data})
+    res.send({code: 0, msg: '查询成功', result: {
+      list: data,
+      count: 1,
+      pageNo: 1,
+      allpage: 1
+    }})
   })
   .catch(err => {
     console.log('err-->', err)
@@ -156,7 +199,7 @@ router.post('/update', (req, res) => {
  * @apiSuccess {String} fail 查询失败.
  */
 router.post('/getInfoByPage', (req, res) => {
-  let pageSize = Number(req.body.pageSize) || 2
+  let pageSize = Number(req.body.pageSize) || 3
   let pageNo = Number(req.body.pageNo) || 1
   let count = 0
 

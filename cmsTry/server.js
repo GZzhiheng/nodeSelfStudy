@@ -25,4 +25,5 @@ app.use('/file', fileRouter)
 
 app.listen(3000, () => {
   console.log('server start')
+  console.log('http://localhost:3000/public/html/index.html')
 })

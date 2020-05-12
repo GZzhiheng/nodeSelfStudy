@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>socket</title>
+</head>
+<body>
+  <input id="inp" type="text"> <button onclick="sendinput()">inputSend</button>
+  <button onclick="sendMsg()">send</button>
+</body>
+<script>
+    const ws = new WebSocket('ws://localhost:8080/')
+    ws.onopen = () => {
+      console.log('前端连接')
+    }
+    ws.onmessage = msg => {
+      console.log('来自服务器的信息--', msg.data)
+    }
+    ws.onclose = () => {
+      console.log('连接关闭')
+    }
+  function sendMsg() {
+    ws.send('来自前端的信息')
+  }
+  function sendinput() {
+    msg = document.getElementById('inp').value
+    ws.send(msg)
+  }
+</script>
+</html>

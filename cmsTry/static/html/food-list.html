@@ -32,7 +32,17 @@
 	<div class="cl pd-5 bg-1 bk-gray mt-20">
 		<span class="l">
 			<a href="javascript:;" onclick="datadel()" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a>
-			<a class="btn btn-primary radius" onclick="food_add('菜品添加','picture-add.html')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 添加产品</a>
+			<a class="btn btn-primary radius" onclick="food_add('菜品添加','food-add.html')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 添加产品</a>
+			<select onchange="getByType(this)">
+				<option value="0">全部</option>
+				<option value="1">肉类</option>
+				<option value="2">蔬菜</option>
+				<option value="3">小吃</option>
+				<option value="4">甜品</option>
+				<option value="4">酒水</option>
+			</select>
+			<input id="kw" type="text" placeholder="请输入查询内容">
+			<button onclick="getByKw()">确定</button>
 		</span>
 		<span class="r">共有数据：<strong id="count">54</strong> 条</span>
 	</div>
@@ -58,10 +68,10 @@
 					<td>图片</td>
 					<td>描述</td>
 					<td class="td-manage">
-						<a style="text-decoration:none" class="ml-5" onClick="picture_edit('图库编辑','picture-add.html','10001')" href="javascript:;" title="编辑">
+						<a style="text-decoration:none" class="ml-5" onClick="food_edit('菜品编辑','food-edit.html','0')" href="javascript:;" title="编辑">
 							<i class="Hui-iconfont">&#xe6df;</i>
 						</a>
-						<a style="text-decoration:none" class="ml-5" onClick="food_del(this,'10001')" href="javascript:;" title="删除">
+						<a style="text-decoration:none" class="ml-5" onClick="food_del(this,'0')" href="javascript:;" title="删除">
 							<i class="Hui-iconfont">&#xe6e2;</i>
 						</a>
 					</td>
@@ -102,7 +112,7 @@
 
 // 渲染数据
 // 请求页面数据
-let allpage = 0
+let allpage = 1
 let pageNo = 1
 let count = 0
 function getFoodList(pNo = 1) {
@@ -136,28 +146,35 @@ getFoodList()
 function renderList(result) {
 	let str = ''
 	let list = result.list
-	for (let index = 0; index < list.length; index++) {
-		let tmpStr = `<tr class="text-c">
-					<td>${index + 1}</td>
-					<td>${list[index].typename}</td>
-					<td>${list[index].name}</td>
-					<td>${list[index].price}</td>
-					<td><img width="210" class="picture-thumb" src="${list[index].img}"></td>
-					<td>${list[index].dec}</td>
-					<td class="td-manage">
-						<a style="text-decoration:none" class="ml-5" onClick="picture_edit('图库编辑','picture-add.html','10001')" href="javascript:;" title="编辑">
-							<i class="Hui-iconfont">&#xe6df;</i>
-						</a>
-						<a style="text-decoration:none" class="ml-5" onClick="food_del('${list[index]._id}')" href="javascript:;" title="删除">
-							<i class="Hui-iconfont">&#xe6e2;</i>
-						</a>
-					</td>
-				</tr>`
-		str += tmpStr
+	if (result.list.length === 0) {
+		str = '暂无数据'
+		allpage = 1
+		pageNo = 1
+		count = 0
+	} else {
+		for (let index = 0; index < list.length; index++) {
+			let tmpStr = `<tr class="text-c">
+						<td>${index + 1}</td>
+						<td>${list[index].typename}</td>
+						<td>${list[index].name}</td>
+						<td>${list[index].price}</td>
+						<td><img width="210" class="picture-thumb" src="${list[index].img}"></td>
+						<td>${list[index].dec}</td>
+						<td class="td-manage">
+							<a style="text-decoration:none" class="ml-5" onClick="food_edit('菜品编辑','food-edit.html','${list[index]._id}')" href="javascript:;" title="编辑">
+								<i class="Hui-iconfont">&#xe6df;</i>
+							</a>
+							<a style="text-decoration:none" class="ml-5" onClick="food_del('${list[index]._id}')" href="javascript:;" title="删除">
+								<i class="Hui-iconfont">&#xe6e2;</i>
+							</a>
+						</td>
+					</tr>`
+			str += tmpStr
+		}
+		allpage = result.allpage
+		pageNo = result.pageNo
+		count = result.count
 	}
-	allpage = result.allpage
-	pageNo = result.pageNo
-	count = result.count
 	$('tbody').html(str)
 	$('#pageMsg').html(`${pageNo}/${allpage}`)
 	$('#count').html(count)
@@ -178,6 +195,31 @@ function food_del(id){
 	});
 }
 
+// 分类查询
+function getByType(el) {
+	let url = 'http://127.0.0.1:3000/food/getFoodByType'
+	let params = {typeid: el.value}
+	$.post(url, params, data => {
+		if (data.code === 0 ) {
+			renderList(data.result)
+		} else {
+			console.log('请求失败')
+		}
+	})
+}
+// 模糊查询
+function getByKw() {
+	let kw = $('#kw').val()
+	let url = 'http://127.0.0.1:3000/food/getFoodByKw'
+
+	$.post(url, {kw}, data => {
+		if (data.code === 0) {
+			renderList(data.result)
+		} else {
+			console.log('请求失败')
+		}
+	})
+}
 /*----------------*/
 
 /*菜品-添加*/
@@ -190,12 +232,13 @@ function food_add(title,url){
 	layer.full(index);
 }
 /*图片-编辑*/
-function picture_edit(title,url,id){
+function food_edit(title,url,id){
 	var index = layer.open({
 		type: 2,
 		title: title,
 		content: url
 	});
+	localStorage.setItem("foodId", id)
 	layer.full(index);
 }
 </script>
