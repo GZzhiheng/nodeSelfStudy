@@ -78,19 +78,30 @@ router.post('/login', function (req, res) {
     User.find({us, ps})
     .then(result => {
       if(result.length > 0) {
-        return res.send({err: 0, msg: '登陆成功'})
+        req.session.login = true
+        req.session.name = us
+        // res.cookieparser = res.cookie('connect.sid',true,{maxAge:10000})
+        console.log(req.session)
+        res.send({err: 0, msg: '登陆成功'})
       } else {
-        return res.send({err: -1, msg: '账号或密码错误'})
+        res.send({err: -1, msg: '账号或密码错误'})
       }
     })
     .catch(err => {
-      console.log('登陆失败')
+      console.log('登陆失败--', err)
       res.send({err: -2, msg: '登陆失败'})
     })
   } else {
-    return res.send({err: -1, msg: '登陆错误参数错误'})
+    res.send({err: -1, msg: '登陆错误参数错误'})
   }
 })
+
+// 销毁session
+router.post('/logOut', function (req, res) {
+  req.session.destroy()
+  res.send({code: 0, msg: '退出成功'})
+})
+
 
 /**
  * @api {post} /user/getMailCode 发送邮件验证码

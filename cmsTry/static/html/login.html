@@ -59,14 +59,18 @@
       us: $('#us').val(),
       ps: $('#ps').val()
     }
-    $.post(url, params, res => {
-      console.log(res)
-      if (res.err === 0) {
-        window.location.href = './index.html'
-      } else {
-        alert(res.msg)
-      }
-    })
+    $.post(
+      url,
+      params,
+      // headers: {xhrFields:{withCredentials:true}},
+      res => {
+        console.log(res)
+        if (res.err === 0) {
+          window.location.href = './index.html'
+        } else {
+          alert(res.msg)
+        }
+      })
   }
 </script>
 </body>
