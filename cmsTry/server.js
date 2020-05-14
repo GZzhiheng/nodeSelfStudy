@@ -5,6 +5,7 @@ const path = require('path')
 const bodyparser = require('body-parser')
 const cookieparser = require('cookie-parser')
 const session = require('express-session')
+const JWT = require('./util/jwt')
 
 // cors解决跨域问题
 const cors = require('cors')
@@ -31,7 +32,9 @@ const foodRouter = require('./router/foodRouter')
 const fileRouter = require('./router/fileRouter')
 
 app.use('/user', userRouter)
+// app.use('/food', foodRouter)
 // food添加session
+/** session验证 
 app.use('/food', (req, res, next) => {
   console.log(req.body)
   console.log(req.session)
@@ -41,7 +44,17 @@ app.use('/food', (req, res, next) => {
     res.send({code: -999, msg: '请先登陆'})
   }
 }, foodRouter)
-// app.use('/food', foodRouter)
+*/
+app.use('/food', (req, res, next) => {
+  let token = req.body.token
+  JWT.checkToken(token)
+  .then(res => {
+    next()
+  })
+  .catch(err => {
+    res.send({err: 1, msg: 'token无效'})
+  })
+}, foodRouter)
 app.use('/file', fileRouter)
 
 app.listen(3000, () => {

@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const User = require('../db/model/userModel')
 const Mail = require('../util/mail')
-
+const JWT = require('../util/jwt')
 const codes = {}
 
 // invoked for any requests passed to this router
@@ -78,11 +78,11 @@ router.post('/login', function (req, res) {
     User.find({us, ps})
     .then(result => {
       if(result.length > 0) {
-        req.session.login = true
-        req.session.name = us
-        // res.cookieparser = res.cookie('connect.sid',true,{maxAge:10000})
-        console.log(req.session)
-        res.send({err: 0, msg: '登陆成功'})
+        // req.session.login = true
+        // req.session.name = us
+        // console.log(req.session)
+        let token = JWT.creatToken({login: true, name: us})
+        res.send({err: 0, msg: '登陆成功', token: token})
       } else {
         res.send({err: -1, msg: '账号或密码错误'})
       }
